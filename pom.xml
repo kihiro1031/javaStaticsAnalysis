@@ -102,6 +102,7 @@
             <sarifOutput>true</sarifOutput>
             <sarifFullPath>true</sarifFullPath>
             <sarifOutputFilename>spotbugs.sarif</sarifOutputFilename>
+            <excludeFilterFile>spotbugs/exclude.xml</excludeFilterFile>
             <plugins>
                 <plugin>
                     <groupId>com.h3xstream.findsecbugs</groupId>
