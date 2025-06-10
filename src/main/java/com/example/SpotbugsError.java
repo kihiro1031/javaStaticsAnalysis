@@ -6,5 +6,6 @@ public class SpotbugsError {
 
         String str = null;
         System.out.println(str.length());
+        System.out.println("問題ないコードを変更");
     }
 }
