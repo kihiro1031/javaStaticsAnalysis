@@ -24,7 +24,14 @@ jobs:
 
       - name: Build with Maven and Run SpotBugs
         run: |
-          mvn package -DskipTests && mvn spotbugs:spotbugs
+          DIFF_FILES=$(git diff origin/${{ github.base_ref }} --name-only | \
+              grep .java | \
+              sed -e 's#^src/main/java/##' \
+                  -e 's#\.java$##' \
+                  -e 's#/#.#g' | \
+              tr '\n' ',')
+          echo "${DIFF_FILES}"
+          mvn package -DskipTests && mvn spotbugs:spotbugs -Dspotbugs.onlyAnalyze="${DIFF_FILES}"
 
       # 解析結果のPR反映として reviewdog を使用
       - name: Setup Reviewdog
