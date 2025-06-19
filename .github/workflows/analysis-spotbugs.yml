@@ -15,14 +15,8 @@ jobs:
         with:
           fetch-depth: 0 # Reviewdogが差分を正しく検出するために必要
 
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: '8'
-          distribution: 'corretto'
-          cache: 'maven'
-
-      - name: Build with Maven and Run SpotBugs
+      - name: Check for Java file changes
+        id: check-diff
         run: |
           DIFF_FILES=$(git diff origin/${{ github.base_ref }} --name-only | \
               grep .java | \
@@ -30,18 +24,43 @@ jobs:
                   -e 's#\.java$##' \
                   -e 's#/#.#g' | \
               tr '\n' ',')
+          echo "diff_files=${DIFF_FILES}" >> $GITHUB_OUTPUT
+          if [ -z "${DIFF_FILES}" ]; then
+            echo "No Java files changed"
+          else
+            echo "Java files changed: ${DIFF_FILES}"
+          fi
+
+      - name: Set up Java
+        if: steps.check-diff.outputs.diff_files != ''
+        uses: actions/setup-java@v4
+        with:
+          java-version: '8'
+          distribution: 'corretto'
+          cache: 'maven'
+
+      - name: Build with Maven and Run SpotBugs
+        if: steps.check-diff.outputs.diff_files != ''
+        run: |
+          DIFF_FILES="${{ steps.check-diff.outputs.diff_files }}"
           echo "${DIFF_FILES}"
           mvn package -DskipTests && mvn spotbugs:spotbugs -Dspotbugs.onlyAnalyze="${DIFF_FILES}"
 
       # 解析結果のPR反映として reviewdog を使用
       - name: Setup Reviewdog
+        if: steps.check-diff.outputs.diff_files != ''
         uses: reviewdog/action-setup@e04ffabe3898a0af8d0fb1af00c188831c4b5893 # v1.3.2
         with:
           reviewdog_version: latest
 
       - name: Run Reviewdog with SpotBugs Report
+        if: steps.check-diff.outputs.diff_files != ''
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cat ./target/spotbugs.sarif \
           | reviewdog -f=sarif -name=spotbugs-pr-review -reporter=github-pr-review -tee
+
+      - name: always
+        if: always()
+        run: echo "完了"
