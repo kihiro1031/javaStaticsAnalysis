@@ -2,10 +2,10 @@ package com.example;
 
 public class SpotbugsError {
     public static void main(String[] args) {
-        System.out.println("問題ないコードを変更");
+        System.out.println("問題ないコードを変更"); // test
 
-        String str = null;
-        System.out.println(str.length());
-        System.out.println("問題ないコードを変更");
+        String str = null; // test
+        System.out.println(str.length()); // test
+        System.out.println("問題ないコードを変更"); // test
     }
 }
