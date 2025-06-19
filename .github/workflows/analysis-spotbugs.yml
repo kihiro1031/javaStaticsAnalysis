@@ -41,6 +41,7 @@ jobs:
 
       - name: Build with Maven and Run SpotBugs
         if: steps.check-diff.outputs.diff_files != ''
+        id: spotbugs
         run: |
           DIFF_FILES="${{ steps.check-diff.outputs.diff_files }}"
           echo "${DIFF_FILES}"
@@ -61,8 +62,8 @@ jobs:
         env:
           REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "sarif_output_dir=${{ steps.check-diff.outputs.sarif_output_dir }}"
-          cat ${{ steps.check-diff.outputs.sarif_output_dir }}/spotbugs.sarif \
+          echo "sarif_output_dir=${{ steps.spotbugs.outputs.sarif_output_dir }}"
+          cat ${{ steps.spotbugs.outputs.sarif_output_dir }}/spotbugs.sarif \
           | reviewdog -f=sarif -name=spotbugs-pr-review -reporter=github-pr-review -tee
 
       - name: always
